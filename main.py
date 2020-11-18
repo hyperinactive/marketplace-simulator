@@ -1,15 +1,16 @@
-from app import App
-from model.app_states.states import Off, On, Await, Handle
-from model import marketplace
+from core import Core
+from model.app_states.states import Idle, Await, Handle
 
-app = App()
-app.change(On)
-app.change(Await)
-app.change(Handle)
-app.change(Await)
-app.change(Off)
+core = Core()
+core.change(Await)
+core.do_smth()
+# core.change(Await)
+# core.change(Handle)
+# core.change(Await)
+# core.change(Off)
 
-# init the marketplace instance
-m = marketplace.Marketplace()
-print(m.get_instance().data)
-print('end')
+# TODO: handle core states and enable instruction creation
+#   - I guess we can turn it off and on, that'd be cool
+#   but waiting and instruction handling must be automatic
+#   - make a Marketplace Viewer, some GUI to show the current state of the market
+#   optional: can be started as a standalone script from other sources?

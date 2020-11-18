@@ -1,5 +1,5 @@
-# class state handler
-class AppState(object):
+# class state super class
+class CoreState(object):
     name = "state"
     allowed = []
 
@@ -16,21 +16,17 @@ class AppState(object):
 
 
 # states
-class On(AppState):
-    name = 'on'
-    allowed = ['await', 'off']
-
-
-class Await(AppState):
-    name = 'await'
-    allowed = ['handle', 'on', 'off']
-
-
-class Handle(AppState):
-    name = 'handle'
+class Idle(CoreState):
+    name = 'idle'
     allowed = ['await']
 
 
-class Off(AppState):
-    name = 'off'
-    allowed = ['on']
+class Await(CoreState):
+    name = 'await'
+    allowed = ['handle', 'idle']
+
+
+class Handle(CoreState):
+    name = 'handle'
+    allowed = ['await']
+
