@@ -1,42 +1,45 @@
 from model.app_states import states
 from model import marketplace
+from sys import exit
 
 
 # core tracks states and controls the Trader and Order Matcher
 class Core(object):
 
     def __init__(self):
-        # default state
+        # set the default state and start the default function
         self.state = states.Idle()
+        self.idle()
 
-        # init the marketplace upon creation
+        # init the marketplace
         print('Initializing the marketplace instance')
-        m = marketplace.Marketplace()
-        print(f'Instance: {m.get_instance()}')
-        print(f'Current marketplace item count {m.get_instance().get_order_count()}')
+        market = marketplace.Marketplace()
+        print(f'Instance: {market.get_instance()}')
 
+    # function to change states
     def change(self, state):
         # change state
         self.state.switch(state)
 
-        # TODO: handle the Await state
-        #   create an Instruction class, (optional) perhaps <- a super class and Resident/Incoming sub classes?
+    def idle(self):
+        while isinstance(self.state, states.Idle):
+            response = input('Engine idling, type await to start or close to exit\n')
 
-        # TODO: maybe have this in a separate function, make it cleaner
-        #   handle idle in the same way? - core currently shuts down after the loop ends
-        if self.state.name == states.Await.name:
-            print('Now, I wait on instructions')
-            print('To stop me, switch to idle')
-            while self.state.name == states.Await.name:
-                response = input('Make an instruction or put the core to idle by typing \'idle\'\n')
+            # change states if the user wants to
+            if response == 'await':
+                self.change(states.Await)
+                self.await_for_orders()
+            # terminate the app
+            if response == 'close':
+                exit()
 
-                if response == 'idle':
-                    self.change(states.Idle)
+    # function to handle incoming orders
+    def await_for_orders(self):
+        while isinstance(self.state, states.Await):
+            response = input('Make an instruction or put the core to idle by typing \'idle\'\n')
 
-    def do_smth(self):
-        # probably wrong to compare names, but I don't know better atm
-        if self.state.name == states.Idle.name:
-            print('I am doing something while being ON')
+            if response == 'idle':
+                self.change(states.Idle)
 
     def invoke_order_matching_engine(self):
         # TODO: create an Order Matching Engine

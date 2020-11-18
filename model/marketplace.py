@@ -16,12 +16,6 @@ class Marketplace:
     def __init__(self):
         try:
             Marketplace.__instance = self
-            self.__resident_orders = []
+            self.resident_orders = list()
         except InstanceError:
             pass
-
-    # getter for private variables
-    # serves no real purpose for now
-    # testing stuff
-    def get_order_count(self):
-        return len(self.__resident_orders)
