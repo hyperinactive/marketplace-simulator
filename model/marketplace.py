@@ -16,6 +16,9 @@ class Marketplace:
     def __init__(self):
         try:
             Marketplace.__instance = self
-            self.resident_orders = list()
+            # init the lists
+            # TODO: maybe add a loader to get pre startup data(?)
+            self.asks = list()
+            self.bids = list()
         except InstanceError:
             pass

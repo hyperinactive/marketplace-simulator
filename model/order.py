@@ -1,4 +1,10 @@
 from datetime import datetime
+import enum
+
+
+class Action(enum.Enum):
+    BUY: 'buy'
+    SELL: 'sell'
 
 
 # order super class
@@ -20,4 +26,3 @@ class LimitPriceOrder(Order):
 class MarketPriceOrder(Order):
     def __init__(self, action):
         super().__init__(action)
-
