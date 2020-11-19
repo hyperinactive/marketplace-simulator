@@ -1,4 +1,5 @@
 from model.app_states.states import Idle, Await
+from model.marketplace import Marketplace
 from model import order
 from sys import exit
 
@@ -33,7 +34,15 @@ def await_for_orders(core):
             if decompose[0] == 'lpo':
                 print('LPO')
                 o = order.LimitPriceOrder(decompose[1], decompose[2])
-                print(o)
+
+                if decompose[1] == 'buy':
+                    core.market.get_instance().bids.append(o)
+                    print(*core.market.get_instance().bids)
+
+                elif decompose[1] == 'sell':
+                    core.market.asks.append(o)
+                    print(*core.market.get_instance().asks)
+
             elif decompose[0] == 'mpo':
                 print('MPO')
                 o = order.MarketPriceOrder(decompose[1])

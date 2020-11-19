@@ -1,3 +1,6 @@
+import csv
+
+
 # custom error to catch instancing errors
 class InstanceError:
     print('Only one instance of Marketplace can exist')
@@ -22,3 +25,7 @@ class Marketplace:
             self.bids = list()
         except InstanceError:
             pass
+
+    def loader(self):
+        # TODO: load items from the marketplace_orders.csv
+        pass
