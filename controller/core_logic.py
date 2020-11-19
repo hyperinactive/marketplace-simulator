@@ -27,13 +27,18 @@ def await_for_orders(core):
 
         if response == 'idle':
             core.change(Idle)
+        elif response == 'load':
+            # core.market.get_instance().load_starting_data()
+            core.load()
+            print(core.market.get_instance().asks)
+
         else:
             # TODO: handle input errors
             # TODO: handle proper order creation handling and handle marketplace changes
             decompose = response.split(' ')
             if decompose[0] == 'lpo':
                 print('LPO')
-                o = order.LimitPriceOrder(decompose[1], decompose[2])
+                o = order.LimitPriceOrder(action=decompose[1], limit_price=decompose[2])
 
                 if decompose[1] == 'buy':
                     core.market.get_instance().bids.append(o)
@@ -45,7 +50,7 @@ def await_for_orders(core):
 
             elif decompose[0] == 'mpo':
                 print('MPO')
-                o = order.MarketPriceOrder(decompose[1])
+                o = order.MarketPriceOrder(action=decompose[1])
                 print(o)
 
     def invoke_order_matching_engine(self):

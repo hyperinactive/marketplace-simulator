@@ -1,15 +1,15 @@
 import csv
 import random
-import datetime
+from datetime import datetime, timedelta
 
 
-def random_date(start):
+def random_timestamp(start):
     current = start
-    curr = current + datetime.timedelta(minutes=random.randrange(60))
+    curr = current + timedelta(minutes=random.randrange(60))
     return curr
 
 
-startDate = datetime.datetime.now() - datetime.timedelta(hours=1)
+startDate = datetime.now() - timedelta(hours=1)
 
 # a util file to generate orders
 order_action = ['bid', 'ask']
@@ -22,7 +22,7 @@ with open('marketplace_orders.csv', 'w') as csv_file:
     csv_writer.writeheader()
 
 # append rows
-for i in range(0, 300):
+for i in range(0, 100):
     with open('marketplace_orders.csv', 'a') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
@@ -36,7 +36,7 @@ for i in range(0, 300):
             'order_type': 'lpo',
             'order_action': oa,
             'limit_price': limit_price,
-            'timestamp': random_date(startDate),
+            'timestamp': random_timestamp(startDate),
             'quantity': 1
         }
 
