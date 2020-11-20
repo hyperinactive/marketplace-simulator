@@ -1,7 +1,8 @@
-from model.app_states.states import Idle, Await
-from model.marketplace import Marketplace
+from model.app_states.states import Idle, Await, Handle
+from datetime import datetime
 from model import order
 from sys import exit
+from view import plot
 
 
 # class specific functions outside of it?
@@ -22,45 +23,58 @@ def idle(core):
 
 def await_for_orders(core):
     while isinstance(core.state, Await):
-        print('put the core to idle by typing \'idle\'\n')
-        response = input('Or make an order: lpo action price OR mpo action\n')
+        print('Put the core to idle by typing \'idle\'')
+        response = input('Make an order: lpo_action_price OR mpo_action\n')
 
         if response == 'idle':
             core.change(Idle)
         elif response == 'load':
-            # core.market.get_instance().load_starting_data()
+            core.change(Handle)
             core.load()
-            print(core.market.get_instance().asks)
-
+            core.change(Await)
+        elif response == 'plot':
+            core.change(Handle)
+            plot.make_plot(core.market.get_instance())
+            core.change(Await)
         else:
-            # TODO: handle input errors
-            # TODO: handle proper order creation handling and handle marketplace changes
-            decompose = response.split(' ')
-            if decompose[0] == 'lpo':
-                print('LPO')
-                o = order.LimitPriceOrder(action=decompose[1], limit_price=decompose[2])
+            core.change(Handle)
+            handle_operation(core, response)
 
-                if decompose[1] == 'buy':
-                    core.market.get_instance().bids.append(o)
-                    print(*core.market.get_instance().bids)
 
-                elif decompose[1] == 'sell':
-                    core.market.asks.append(o)
-                    print(*core.market.get_instance().asks)
+def handle_operation(core, response):
+    # TODO: handle input errors
+    # TODO: handle proper order creation handling and handle marketplace changes
+    decompose = response.split(' ')
+    if decompose[0] == 'lpo':
+        print('Limit Price Order')
+        o = order.LimitPriceOrder(action=decompose[1], limit_price=decompose[2], timestamp=datetime.now(), quantity=1)
 
-            elif decompose[0] == 'mpo':
-                print('MPO')
-                o = order.MarketPriceOrder(action=decompose[1])
-                print(o)
+        if decompose[1] == 'bid':
+            core.market.get_instance().bids.append(o)
+            print(*core.market.get_instance().bids)
 
-    def invoke_order_matching_engine(self):
-        # TODO: create an Order Matching Engine
-        #   Engine should take in an instruction and determine it's type
-        #   based on the type find the appropriate match
-        #   matching priority: price/time
-        pass
+        elif decompose[1] == 'ask':
+            core.market.asks.append(o)
+            print(*core.market.get_instance().asks)
 
-    def invoke_trader(self):
-        # TODO: create a Trader
-        #   Trader should take in matches and handle the data accordingly
-        pass
+    elif decompose[0] == 'mpo':
+        print('MPO')
+        o = order.MarketPriceOrder(action=decompose[1], timestamp=datetime.now(), quantity=1)
+        print(o)
+
+    core.change(Await)
+    await_for_orders(core)
+
+
+def invoke_order_matching_engine(self):
+    # TODO: create an Order Matching Engine
+    #   Engine should take in an instruction and determine it's type
+    #   based on the type find the appropriate match
+    #   matching priority: price/time
+    pass
+
+
+def invoke_trader(self):
+    # TODO: create a Trader
+    #   Trader should take in matches and handle the data accordingly
+    pass

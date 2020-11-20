@@ -29,22 +29,6 @@ class Marketplace:
         except InstanceError:
             pass
 
-    # def load_starting_data(self):
-    #     # order_type,order_action,limit_price,timestamp,quantity
-    #
-    #     data = pd.read_csv('../utils/marketplace_orders.csv')
-    #     order_action = data['order_action']
-    #     limit_price = data['limit_price']
-    #     timestamp = data['timestamp']
-    #     quantity = data['quantity']
-    #
-    #     for i in range(0, len(data)):
-    #         limit_price_order = LimitPriceOrder(order_action[i], timestamp[i], quantity[i], limit_price[i])
-    #         if order_action[i] == 'ask':
-    #             self.asks.append(limit_price_order)
-    #         else:
-    #             self.bids.append(limit_price_order)
-
 # m = Marketplace()
 # m.get_instance().load_starting_data()
 # for i in range(0, 5):

@@ -6,9 +6,11 @@ class CoreState(object):
     def switch(self, state):
         """ Switch to new state """
         if state.name in self.allowed:
+            print('-----------------------------------------------------------------')
             print('Current:', self, ' => switched to new state', state.name)
             self.__class__ = state
         else:
+            print('-----------------------------------------------------------------')
             print('Current:', self, ' => switching to', state.name, 'not possible.')
 
     def __str__(self):

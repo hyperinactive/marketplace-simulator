@@ -40,3 +40,16 @@ class Core(object):
                 self.market.get_instance().asks.append(limit_price_order)
             else:
                 self.market.get_instance().bids.append(limit_price_order)
+
+        # sort loaded data
+        # for easier plotting down the line
+        self.market.get_instance().asks = sorted(self.market.get_instance().asks)
+        self.market.get_instance().bids = sorted(self.market.get_instance().bids)
+
+        print('BIDS')
+        for item in self.market.get_instance().bids:
+            print(item)
+
+        print('ASKS')
+        for item in self.market.get_instance().asks:
+            print(item)
