@@ -29,7 +29,8 @@ class Marketplace:
         except InstanceError:
             pass
 
-# m = Marketplace()
-# m.get_instance().load_starting_data()
-# for i in range(0, 5):
-#     print(m.get_instance().asks[i])
+    def highest_bid(self):
+        return self.bids[len(self.bids) - 1]
+
+    def lowest_ask(self):
+        return self.asks[0]

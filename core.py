@@ -35,7 +35,10 @@ class Core(object):
         quantity = data['quantity']
 
         for i in range(0, len(data)):
-            limit_price_order = LimitPriceOrder(order_action[i], timestamp[i], quantity[i], limit_price[i])
+            limit_price_order = LimitPriceOrder(order_action[i],
+                                                timestamp[i],
+                                                quantity[i],
+                                                limit_price[i])
             if order_action[i] == 'ask':
                 self.market.get_instance().asks.append(limit_price_order)
             else:
@@ -49,7 +52,9 @@ class Core(object):
         print('BIDS')
         for item in self.market.get_instance().bids:
             print(item)
+        print(f'Highest bid: {self.market.get_instance().highest_bid()}')
 
         print('ASKS')
         for item in self.market.get_instance().asks:
             print(item)
+        print(f'Lowest ask: {self.market.get_instance().lowest_ask()}')

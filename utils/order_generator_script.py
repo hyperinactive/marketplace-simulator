@@ -23,7 +23,7 @@ with open('marketplace_orders.csv', 'w') as csv_file:
     csv_writer.writeheader()
 
 # append rows
-for i in range(0, 30):
+for i in range(0, 100):
     with open('marketplace_orders.csv', 'a') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 

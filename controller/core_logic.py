@@ -48,14 +48,15 @@ def handle_operation(core, response):
     if decompose[0] == 'lpo':
         print('Limit Price Order')
         o = order.LimitPriceOrder(action=decompose[1], limit_price=decompose[2], timestamp=datetime.now(), quantity=1)
+        print(o)
 
         if decompose[1] == 'bid':
             core.market.get_instance().bids.append(o)
-            print(*core.market.get_instance().bids)
+            # print(*core.market.get_instance().bids)
 
         elif decompose[1] == 'ask':
             core.market.asks.append(o)
-            print(*core.market.get_instance().asks)
+            # print(*core.market.get_instance().asks)
 
     elif decompose[0] == 'mpo':
         print('MPO')

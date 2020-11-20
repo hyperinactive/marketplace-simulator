@@ -24,8 +24,14 @@ class LimitPriceOrder(Order):
                and self.timestamp == other.timestamp \
                and self.action == other.action
 
+    # rich comparisons
+    # if prices match, compare timestamps
     def __lt__(self, other):
-        return self.limit_price < other.limit_price
+        if isinstance(other, LimitPriceOrder):
+            if self.limit_price == other.limit_price:
+                return self.timestamp < other.timestamp
+            else:
+                return self.limit_price < other.limit_price
 
     # repr an str combo to define what gets printed once called in the print method
     def __repr__(self):
