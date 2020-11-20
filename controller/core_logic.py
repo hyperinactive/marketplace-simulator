@@ -2,7 +2,7 @@ from model.app_states.states import Idle, Await, Handle
 from datetime import datetime
 from model import order
 from sys import exit
-from view import plot
+from view.plot import make_plot
 
 
 # class specific functions outside of it?
@@ -34,7 +34,7 @@ def await_for_orders(core):
             core.change(Await)
         elif response == 'plot':
             core.change(Handle)
-            plot.make_plot(core.market.get_instance())
+            make_plot(core.market.get_instance())
             core.change(Await)
         else:
             core.change(Handle)
@@ -47,15 +47,19 @@ def handle_operation(core, response):
     decompose = response.split(' ')
     if decompose[0] == 'lpo':
         print('Limit Price Order')
-        o = order.LimitPriceOrder(action=decompose[1], limit_price=decompose[2], timestamp=datetime.now(), quantity=1)
+        o = order.LimitPriceOrder(action=decompose[1], limit_price=int(decompose[2]), timestamp=str(datetime.now()), quantity=1)
         print(o)
 
         if decompose[1] == 'bid':
             core.market.get_instance().bids.append(o)
+            for x in core.market.get_instance().bids:
+                print(f'{x} and type: {type(x)}')
             # print(*core.market.get_instance().bids)
 
         elif decompose[1] == 'ask':
             core.market.asks.append(o)
+            for x in core.market.get_instance().asks:
+                print(f'{x} and type: {type(x)}')
             # print(*core.market.get_instance().asks)
 
     elif decompose[0] == 'mpo':

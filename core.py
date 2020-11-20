@@ -46,15 +46,17 @@ class Core(object):
 
         # sort loaded data
         # for easier plotting down the line
-        self.market.get_instance().asks = sorted(self.market.get_instance().asks)
-        self.market.get_instance().bids = sorted(self.market.get_instance().bids)
+
+        # pre-sort the ask and bids
+        # self.market.get_instance().asks = sorted(self.market.get_instance().asks)
+        # self.market.get_instance().bids = sorted(self.market.get_instance().bids)
 
         print('BIDS')
         for item in self.market.get_instance().bids:
             print(item)
-        print(f'Highest bid: {self.market.get_instance().highest_bid()}')
 
         print('ASKS')
         for item in self.market.get_instance().asks:
             print(item)
         print(f'Lowest ask: {self.market.get_instance().lowest_ask()}')
+        print(f'Highest bid: {self.market.get_instance().highest_bid()}')

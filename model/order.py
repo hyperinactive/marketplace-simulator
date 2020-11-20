@@ -20,9 +20,10 @@ class LimitPriceOrder(Order):
     # •The sort routines are guaranteed to use __lt__() when making comparisons between two objects
     # sorted()
     def __eq__(self, other):
-        return self.limit_price == other.limit_price \
-               and self.timestamp == other.timestamp \
-               and self.action == other.action
+        if isinstance(other, LimitPriceOrder):
+            return self.limit_price == other.limit_price \
+                   and self.timestamp == other.timestamp \
+                   and self.action == other.action
 
     # rich comparisons
     # if prices match, compare timestamps

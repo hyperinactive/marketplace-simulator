@@ -3,17 +3,16 @@ import random
 from datetime import datetime, timedelta
 
 
-def random_timestamp(start):
-    current = start
-    curr = current + timedelta(minutes=random.randrange(60))
-    return curr
+# randomize a timestamp
+def random_timestamp():
+    return datetime.now() - timedelta(days=random.randrange(365),
+                                      hours=random.randrange(24),
+                                      minutes=random.randrange(60))
 
-
-startDate = datetime.now() - timedelta(hours=1)
 
 # a util file to generate orders
 # BIDS/ASKS 60/40
-order_action = ['bid']*6 + ['ask']*4
+order_action = ['bid'] * 6 + ['ask'] * 4
 
 fieldnames = ['order_type', 'order_action', 'limit_price', 'timestamp', 'quantity']
 
@@ -37,7 +36,7 @@ for i in range(0, 100):
             'order_type': 'lpo',
             'order_action': oa,
             'limit_price': limit_price,
-            'timestamp': random_timestamp(startDate),
+            'timestamp': random_timestamp(),
             'quantity': 1
         }
 
