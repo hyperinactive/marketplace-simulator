@@ -72,6 +72,7 @@ def handle_operation(core, response):
         o = order.MarketPriceOrder(action=decompose[1],
                                    timestamp=datetime.now(),
                                    quantity=1)
+        handle_underlying_orders(core, o)
         print(o)
 
     core.change(Await)
@@ -116,6 +117,14 @@ def handle_underlying_orders(core, u_order):
     core.market.get_instance().asks = sorted(core.market.get_instance().asks)
     core.market.get_instance().bids = sorted(core.market.get_instance().bids)
 
+    if isinstance(u_order, order.LimitPriceOrder):
+        handle_lpo(core, u_order)
+
+    if isinstance(u_order, order.MarketPriceOrder):
+        handle_mpo(core, u_order)
+
+
+def handle_lpo(core, u_order):
     # could these two blocks have been written just once? -probably
     # should I have done so? -yeah
     if u_order.action == 'bid':
@@ -129,9 +138,24 @@ def handle_underlying_orders(core, u_order):
 
     if u_order.action == 'ask':
         for item in core.market.get_instance().bids:
-            if item.limit_price <= u_order.limit_price:
+            if item.limit_price >= u_order.limit_price:
                 print(f'Bought {item}')
                 core.market.get_instance().bids.pop(core.market.get_instance().bids.index(item))
                 return
         print(f'Added {u_order}')
         core.market.get_instance().asks.append(u_order)
+
+
+def handle_mpo(core, u_order):
+    if u_order.action == 'bid':
+        if len(core.market.get_instance().asks) == 0:
+            print('No sellers on the marketplace, marketplace price non existent')
+        else:
+            matching_order = core.market.get_instance().asks.pop(0)
+            print(f'Bought {matching_order}')
+    if u_order.action == 'ask':
+        if len(core.market.get_instance().bids) == 0:
+            print('No buyers on the marketplace, marketplace price non existent')
+        else:
+            matching_order = core.market.get_instance().bids.pop()
+            print(f'Bought {matching_order}')
