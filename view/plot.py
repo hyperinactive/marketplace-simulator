@@ -1,5 +1,4 @@
 from matplotlib import pyplot as plt
-import numpy as np
 
 
 def make_plot(marketplace):
@@ -10,11 +9,6 @@ def make_plot(marketplace):
     # TODO: have bins represent the data from the marketplace better
     bins = [x for x in range(0, 400, 5)]
     # bins.insert(len(bins)//2, round(bins[len(bins)//2] + gap))
-
-    # bids_pre = sorted(marketplace.bids, key=lambda x: x.limit_price)
-    # bids = order_to_int(bids_pre)
-    # asks_pre = sorted(marketplace.asks, key=lambda x: x.limit_price)
-    # asks = order_to_int(asks_pre)
 
     bids = sorted(order_to_int(marketplace.bids))
     asks = sorted(order_to_int(marketplace.asks))

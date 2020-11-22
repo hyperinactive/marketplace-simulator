@@ -3,6 +3,7 @@ from datetime import datetime
 from model import order
 from sys import exit
 from view.plot import make_plot
+import csv
 
 
 # class specific functions outside of it?
@@ -16,8 +17,9 @@ def idle(core):
         if response == 'await':
             core.change(Await)
             await_for_orders(core)
-        # terminate the app
+        # terminate the app and save the changes
         if response == 'close':
+            save(core)
             exit()
 
 
@@ -47,39 +49,89 @@ def handle_operation(core, response):
     decompose = response.split(' ')
     if decompose[0] == 'lpo':
         print('Limit Price Order')
-        o = order.LimitPriceOrder(action=decompose[1], limit_price=int(decompose[2]), timestamp=str(datetime.now()), quantity=1)
+        o = order.LimitPriceOrder(action=decompose[1],
+                                  limit_price=int(decompose[2]),
+                                  timestamp=str(datetime.now()),
+                                  quantity=1)
         print(o)
 
         if decompose[1] == 'bid':
-            core.market.get_instance().bids.append(o)
-            for x in core.market.get_instance().bids:
-                print(f'{x} and type: {type(x)}')
-            # print(*core.market.get_instance().bids)
+            # core.market.get_instance().bids.append(o)
+            # for x in core.market.get_instance().bids:
+            #     print(f'{x} and type: {type(x)}')
 
+            handle_underlying_orders(core, o)
         elif decompose[1] == 'ask':
-            core.market.asks.append(o)
-            for x in core.market.get_instance().asks:
-                print(f'{x} and type: {type(x)}')
-            # print(*core.market.get_instance().asks)
+            # core.market.asks.append(o)
+            # for x in core.market.get_instance().asks:
+            #     print(f'{x} and type: {type(x)}')
+            handle_underlying_orders(core, o)
 
     elif decompose[0] == 'mpo':
         print('MPO')
-        o = order.MarketPriceOrder(action=decompose[1], timestamp=datetime.now(), quantity=1)
+        o = order.MarketPriceOrder(action=decompose[1],
+                                   timestamp=datetime.now(),
+                                   quantity=1)
         print(o)
 
     core.change(Await)
     await_for_orders(core)
 
 
-def invoke_order_matching_engine(self):
-    # TODO: create an Order Matching Engine
-    #   Engine should take in an instruction and determine it's type
-    #   based on the type find the appropriate match
-    #   matching priority: price/time
-    pass
+def save(core):
+    # don't do this
+    path = 'C:/Users/aleks/PycharmProjects/marketplace/utils/marketplace_orders.csv'
+    fieldnames = ['order_type', 'order_action', 'limit_price', 'timestamp', 'quantity']
+
+    # get the newly added order to the csv
+    # importing os module? never heard of it
+    with open(path, 'w') as csv_file:
+        # lpo,ask,113,2020-08-24 13:49:18.692822,1
+        csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        csv_writer.writeheader()
+
+    write_items(core.market.get_instance().bids,
+                'C:/Users/aleks/PycharmProjects/marketplace/utils/marketplace_orders.csv',
+                fieldnames)
+    write_items(core.market.get_instance().asks,
+                'C:/Users/aleks/PycharmProjects/marketplace/utils/marketplace_orders.csv',
+                fieldnames)
 
 
-def invoke_trader(self):
-    # TODO: create a Trader
-    #   Trader should take in matches and handle the data accordingly
-    pass
+def write_items(item_list, path, fieldnames):
+    for item in item_list:
+        with open(path, 'a') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            info = {
+                'order_type': 'lpo',
+                'order_action': item.action,
+                'limit_price': item.limit_price,
+                'timestamp': item.timestamp,
+                'quantity': item.quantity
+            }
+            csv_writer.writerow(info)
+
+
+def handle_underlying_orders(core, u_order):
+    core.market.get_instance().asks = sorted(core.market.get_instance().asks)
+    core.market.get_instance().bids = sorted(core.market.get_instance().bids)
+
+    # could these two blocks have been written just once? -probably
+    # should I have done so? -yeah
+    if u_order.action == 'bid':
+        for item in core.market.get_instance().asks:
+            if item.limit_price <= u_order.limit_price:
+                print(f'Bought {item}')
+                core.market.get_instance().asks.pop(core.market.get_instance().asks.index(item))
+                return
+        print(f'Added {u_order}')
+        core.market.get_instance().bids.append(u_order)
+
+    if u_order.action == 'ask':
+        for item in core.market.get_instance().bids:
+            if item.limit_price <= u_order.limit_price:
+                print(f'Bought {item}')
+                core.market.get_instance().bids.pop(core.market.get_instance().bids.index(item))
+                return
+        print(f'Added {u_order}')
+        core.market.get_instance().asks.append(u_order)
