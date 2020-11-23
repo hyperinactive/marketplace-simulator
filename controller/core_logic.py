@@ -1,9 +1,11 @@
 from model.app_states.states import Idle, Await, Handle
 from model.marketplace import Marketplace
 from model.order import LimitPriceOrder, MarketPriceOrder
-from view.plot import make_plot
+from view.plot import make_plot, simulate
 from datetime import datetime
 from sys import exit
+from utils.random_stream_generator import generate
+from time import sleep
 import csv
 
 
@@ -25,29 +27,42 @@ def idle(core):
             await_for_orders(core)
         # terminate the app and save the changes
         if response == 'close':
-            save(core)
+            save()
             exit()
 
 
 def await_for_orders(core):
     while isinstance(core.state, Await):
         print('Put the core to idle by typing \'idle\'')
+        print('Load starting data by typing \'load\'')
+        print('Plot the data by typing \'plot\'')
         response = input('Make an order: lpo_action_price OR mpo_action\n')
 
         if response == 'idle':
             core.change(Idle)
-        elif response == 'load':
-            core.change(Handle)
-            core.load()
-            core.change(Await)
-        elif response == 'plot':
-            core.change(Handle)
-            make_plot()
-            core.change(Await)
         else:
             core.change(Handle)
+            handle(core, response)
+
+
+def handle(core, response):
+    while isinstance(core.state, Handle):
+        if response == 'load':
+            core.load()
+
+        elif response == 'plot':
+            make_plot()
+        elif response == 'simulate':
+            x = int(input('Number of simulations?\n'))
+            for i in range(0, x):
+                handle_input_orders(generate())
+                sleep(2)
+        elif response == 'sim v2':
+            simulate(handle_func=handle_operation)
+        else:
             handle_operation(response)
-            core.change(Await)
+
+        core.change(Await)
 
 
 def handle_operation(response):
@@ -55,7 +70,7 @@ def handle_operation(response):
     handle_input_orders(response)
 
 
-def save(core):
+def save():
     # don't do this
     path = 'C:/Users/aleks/PycharmProjects/marketplace/utils/marketplace_orders.csv'
     fieldnames = ['order_type', 'order_action', 'limit_price', 'timestamp', 'quantity']
@@ -67,10 +82,10 @@ def save(core):
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
 
-    write_items(core.market.get_instance().bids,
+    write_items(Marketplace.get_instance().bids,
                 'C:/Users/aleks/PycharmProjects/marketplace/utils/marketplace_orders.csv',
                 fieldnames)
-    write_items(core.market.get_instance().asks,
+    write_items(Marketplace.get_instance().asks,
                 'C:/Users/aleks/PycharmProjects/marketplace/utils/marketplace_orders.csv',
                 fieldnames)
 

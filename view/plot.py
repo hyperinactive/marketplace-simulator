@@ -1,16 +1,15 @@
 from matplotlib import pyplot as plt
 from model.marketplace import Marketplace
+from itertools import count
+from matplotlib.animation import FuncAnimation
+from utils.random_stream_generator import generate
 
 
 def make_plot():
     plt.style.use('seaborn')
     m = Marketplace.get_instance()
-
-    # gap = marketplace.lowest_ask().limit_price - marketplace.highest_bid().limit_price
-
     # TODO: have bins represent the data from the marketplace better
     bins = [x for x in range(0, 400, 5)]
-    # bins.insert(len(bins)//2, round(bins[len(bins)//2] + gap))
 
     bids = sorted(order_to_int(Marketplace.get_instance().bids))
     asks = sorted(order_to_int(Marketplace.get_instance().asks))
@@ -42,6 +41,37 @@ def make_plot():
 
     plt.tight_layout()
 
+    plt.show()
+
+
+def simulate(handle_func):
+    m = Marketplace.get_instance()
+
+    plt.style.use('fivethirtyeight')
+    index = count()
+
+    def animate(i):
+        handle_func(generate())
+
+        bins = [x for x in range(0, 400, 5)]
+
+        bids = sorted(order_to_int(Marketplace.get_instance().bids))
+        asks = sorted(order_to_int(Marketplace.get_instance().asks))
+
+        plt.cla()
+
+        plt.hist(bids, bins=bins, edgecolor='orange', label='BIDS')
+        plt.hist(asks, bins=bins, edgecolor='yellow', label='ASKS')
+
+        plt.legend()
+        plt.title('Marketplace info')
+
+        plt.xlabel('Order prices')
+        plt.ylabel('Number of orders')
+
+    ani = FuncAnimation(plt.gcf(), animate, interval=2000)
+
+    plt.tight_layout()
     plt.show()
 
 
