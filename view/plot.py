@@ -1,8 +1,10 @@
 from matplotlib import pyplot as plt
+from model.marketplace import Marketplace
 
 
-def make_plot(marketplace):
+def make_plot():
     plt.style.use('seaborn')
+    m = Marketplace.get_instance()
 
     # gap = marketplace.lowest_ask().limit_price - marketplace.highest_bid().limit_price
 
@@ -10,19 +12,19 @@ def make_plot(marketplace):
     bins = [x for x in range(0, 400, 5)]
     # bins.insert(len(bins)//2, round(bins[len(bins)//2] + gap))
 
-    bids = sorted(order_to_int(marketplace.bids))
-    asks = sorted(order_to_int(marketplace.asks))
+    bids = sorted(order_to_int(Marketplace.get_instance().bids))
+    asks = sorted(order_to_int(Marketplace.get_instance().asks))
 
-    bids_t = order_to_timestamp(sorted(marketplace.bids, key=lambda x: x.timestamp))
-    asks_t = order_to_timestamp(sorted(marketplace.asks, key=lambda x: x.timestamp))
+    bids_t = order_to_timestamp(sorted(m.bids, key=lambda x: x.timestamp))
+    asks_t = order_to_timestamp(sorted(m.asks, key=lambda x: x.timestamp))
 
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1)
 
     ax1.hist(bids, bins=bins, edgecolor='orange', label='BIDS', log=True)
     ax1.hist(asks, bins=bins, edgecolor='yellow', label='ASKS', log=True)
 
-    ax2.plot(bids_t, order_to_int(marketplace.bids), color='#444444', linestyle='--', label='BIDS')
-    ax3.plot(asks_t, order_to_int(marketplace.asks), color='#888444', linestyle='--', label='ASKS')
+    ax2.plot(bids_t, order_to_int(m.bids), color='#444444', linestyle='--', label='BIDS')
+    ax3.plot(asks_t, order_to_int(m.asks), color='#888444', linestyle='--', label='ASKS')
 
     ax1.legend()
     plt.title('Marketplace info')

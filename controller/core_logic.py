@@ -1,10 +1,16 @@
 from model.app_states.states import Idle, Await, Handle
-from datetime import datetime
-from model import order
-from sys import exit
+from model.marketplace import Marketplace
+from model.order import LimitPriceOrder, MarketPriceOrder
 from view.plot import make_plot
+from datetime import datetime
+from sys import exit
 import csv
 
+
+# obviously Core should've been a singleton class, rather than Marketplace...
+# well, no going back now
+
+# quick fix to the logic in order to use it's functions for random_stream_generator -> import Marketplace()
 
 # class specific functions outside of it?
 # pretty sure this isn't even remotely close to being a decent piece of code
@@ -36,47 +42,17 @@ def await_for_orders(core):
             core.change(Await)
         elif response == 'plot':
             core.change(Handle)
-            make_plot(core.market.get_instance())
+            make_plot()
             core.change(Await)
         else:
             core.change(Handle)
-            handle_operation(core, response)
+            handle_operation(response)
+            core.change(Await)
 
 
-def handle_operation(core, response):
+def handle_operation(response):
     # TODO: handle input errors
-    # TODO: handle proper order creation handling and handle marketplace changes
-    decompose = response.split(' ')
-    if decompose[0] == 'lpo':
-        print('Limit Price Order')
-        o = order.LimitPriceOrder(action=decompose[1],
-                                  limit_price=int(decompose[2]),
-                                  timestamp=str(datetime.now()),
-                                  quantity=1)
-        print(o)
-
-        if decompose[1] == 'bid':
-            # core.market.get_instance().bids.append(o)
-            # for x in core.market.get_instance().bids:
-            #     print(f'{x} and type: {type(x)}')
-
-            handle_underlying_orders(core, o)
-        elif decompose[1] == 'ask':
-            # core.market.asks.append(o)
-            # for x in core.market.get_instance().asks:
-            #     print(f'{x} and type: {type(x)}')
-            handle_underlying_orders(core, o)
-
-    elif decompose[0] == 'mpo':
-        print('MPO')
-        o = order.MarketPriceOrder(action=decompose[1],
-                                   timestamp=datetime.now(),
-                                   quantity=1)
-        handle_underlying_orders(core, o)
-        print(o)
-
-    core.change(Await)
-    await_for_orders(core)
+    handle_input_orders(response)
 
 
 def save(core):
@@ -113,49 +89,70 @@ def write_items(item_list, path, fieldnames):
             csv_writer.writerow(info)
 
 
-def handle_underlying_orders(core, u_order):
-    core.market.get_instance().asks = sorted(core.market.get_instance().asks)
-    core.market.get_instance().bids = sorted(core.market.get_instance().bids)
+def handle_input_orders(response):
+    decompose = response.split(' ')
+    o = None
 
-    if isinstance(u_order, order.LimitPriceOrder):
-        handle_lpo(core, u_order)
+    if decompose[0] == 'lpo':
+        print('Limit Price Order')
+        o = LimitPriceOrder(action=decompose[1],
+                            limit_price=int(decompose[2]),
+                            timestamp=str(datetime.now()),
+                            quantity=1)
+        print(o)
 
-    if isinstance(u_order, order.MarketPriceOrder):
-        handle_mpo(core, u_order)
+    elif decompose[0] == 'mpo':
+        print('Market Price Order')
+        o = MarketPriceOrder(action=decompose[1],
+                             timestamp=datetime.now(),
+                             quantity=1)
+        print(o)
+    handle_underlying_orders(o)
 
 
-def handle_lpo(core, u_order):
+def handle_underlying_orders(u_order):
+    if isinstance(u_order, LimitPriceOrder) or isinstance(u_order, MarketPriceOrder):
+        sorted_asks = sorted(Marketplace.get_instance().asks)
+        sorted_bids = sorted(Marketplace.get_instance().bids)
+
+        # handle lpo or mpo
+        handle_lpo(u_order, sorted_asks, sorted_bids) \
+            if isinstance(u_order, LimitPriceOrder) \
+            else handle_mpo(u_order, sorted_asks, sorted_bids)
+
+
+def handle_lpo(u_order, asks, bids):
     # could these two blocks have been written just once? -probably
     # should I have done so? -yeah
     if u_order.action == 'bid':
-        for item in core.market.get_instance().asks:
+        for item in asks:
             if item.limit_price <= u_order.limit_price:
                 print(f'Bought {item}')
-                core.market.get_instance().asks.pop(core.market.get_instance().asks.index(item))
+                asks.pop(Marketplace.get_instance().asks.index(item))
                 return
         print(f'Added {u_order}')
-        core.market.get_instance().bids.append(u_order)
+        Marketplace.get_instance().bids.append(u_order)
 
     if u_order.action == 'ask':
-        for item in core.market.get_instance().bids:
+        for item in bids:
             if item.limit_price >= u_order.limit_price:
                 print(f'Bought {item}')
-                core.market.get_instance().bids.pop(core.market.get_instance().bids.index(item))
+                bids.pop(Marketplace.get_instance().bids.index(item))
                 return
         print(f'Added {u_order}')
-        core.market.get_instance().asks.append(u_order)
+        Marketplace.get_instance().asks.append(u_order)
 
 
-def handle_mpo(core, u_order):
+def handle_mpo(u_order, asks, bids):
     if u_order.action == 'bid':
-        if len(core.market.get_instance().asks) == 0:
+        if len(asks) == 0:
             print('No sellers on the marketplace, marketplace price non existent')
         else:
-            matching_order = core.market.get_instance().asks.pop(0)
+            matching_order = Marketplace.get_instance().asks.pop(0)
             print(f'Bought {matching_order}')
     if u_order.action == 'ask':
-        if len(core.market.get_instance().bids) == 0:
+        if len(bids) == 0:
             print('No buyers on the marketplace, marketplace price non existent')
         else:
-            matching_order = core.market.get_instance().bids.pop()
+            matching_order = Marketplace.get_instance().bids.pop()
             print(f'Bought {matching_order}')
