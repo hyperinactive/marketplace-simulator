@@ -37,7 +37,7 @@ for i in range(0, 200):
             'order_action': oa,
             'limit_price': limit_price,
             'timestamp': random_timestamp(),
-            'quantity': 1
+            'quantity': random.randint(1, 6)
         }
 
         csv_writer.writerow(info)

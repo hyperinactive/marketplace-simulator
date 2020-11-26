@@ -33,10 +33,11 @@ def idle(core):
 
 def await_for_orders(core):
     while isinstance(core.state, Await):
-        print('Put the core to idle by typing \'idle\'')
-        print('Load starting data by typing \'load\'')
-        print('Plot the data by typing \'plot\'')
-        response = input('Make an order: lpo_action_price OR mpo_action\n')
+        # print('Put the core to idle by typing \'idle\'')
+        # print('Load starting data by typing \'load\'')
+        # print('Plot the data by typing \'plot\'')
+        print('Engine awaiting - option list: \'idle\', \'load\', \'plot\', \'sim\', \'sim v2\'')
+        response = input('Make an order: lpo_action_price_quantity OR mpo_action_quantity\n')
 
         if response == 'idle':
             core.change(Idle)
@@ -52,7 +53,7 @@ def handle(core, response):
 
         elif response == 'plot':
             make_plot()
-        elif response == 'simulate':
+        elif response == 'sim':
             x = int(input('Number of simulations?\n'))
             for i in range(0, x):
                 handle_input_orders(generate())
@@ -113,14 +114,14 @@ def handle_input_orders(response):
         o = LimitPriceOrder(action=decompose[1],
                             limit_price=int(decompose[2]),
                             timestamp=str(datetime.now()),
-                            quantity=1)
+                            quantity=int(decompose[3]))
         print(o)
 
     elif decompose[0] == 'mpo':
         print('Market Price Order')
         o = MarketPriceOrder(action=decompose[1],
                              timestamp=datetime.now(),
-                             quantity=1)
+                             quantity=int(decompose[2]))
         print(o)
     handle_underlying_orders(o)
 
@@ -141,19 +142,39 @@ def handle_lpo(u_order, asks, bids):
     # should I have done so? -yeah
     if u_order.action == 'bid':
         for item in asks:
-            if item.limit_price <= u_order.limit_price:
-                print(f'Bought {item}')
-                asks.pop(Marketplace.get_instance().asks.index(item))
+            if u_order.quantity == 0:
                 return
+            if item.limit_price <= u_order.limit_price:
+                # item.quantity < order quantity
+                if item.quantity < u_order.quantity:
+                    u_order.quantity -= item.quantity
+                    print(f'Bought {item.quantity} of {item}')
+                    Marketplace.get_instance().asks.remove(item)
+                # item.quantity >= order quantity
+                else:
+                    item.quantity -= u_order.quantity
+                    print(f'Bought {item.quantity} of {item}')
+                    if item.quantity == 0:
+                        Marketplace.get_instance().asks.remove(item)
+                    return
         print(f'Added {u_order}')
         Marketplace.get_instance().bids.append(u_order)
 
     if u_order.action == 'ask':
         for item in bids:
-            if item.limit_price >= u_order.limit_price:
-                print(f'Bought {item}')
-                bids.pop(Marketplace.get_instance().bids.index(item))
+            if u_order.quantity == 0:
                 return
+            if item.limit_price >= u_order.limit_price:
+                if item.quantity < u_order.quantity:
+                    u_order.quantity -= item.quantity
+                    print(f'Sold {item.quantity} of {item}')
+                    Marketplace.get_instance().bids.remove(item)
+                else:
+                    item.quantity -= u_order.quantity
+                    print(f'Sold {item.quantity} of {item}')
+                    if item.quantity == 0:
+                        Marketplace.get_instance().bids.remove(item)
+                    return
         print(f'Added {u_order}')
         Marketplace.get_instance().asks.append(u_order)
 
