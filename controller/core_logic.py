@@ -5,7 +5,9 @@ from view.plot import make_plot, simulate
 from datetime import datetime
 from sys import exit
 from utils.random_stream_generator import generate
+from utils.resident_order_generator import generate_staring_data
 from time import sleep
+import pandas as pd
 import csv
 
 
@@ -36,7 +38,7 @@ def await_for_orders(core):
         # print('Put the core to idle by typing \'idle\'')
         # print('Load starting data by typing \'load\'')
         # print('Plot the data by typing \'plot\'')
-        print('Engine awaiting - option list: \'idle\', \'load\', \'plot\', \'sim\', \'sim v2\'')
+        print('Engine awaiting - option list: \'idle\', \'init\' \'load\', \'plot\', \'sim\', \'sim v2\'')
         response = input('Make an order: lpo_action_price_quantity OR mpo_action_quantity\n')
 
         if response == 'idle':
@@ -47,10 +49,12 @@ def await_for_orders(core):
 
 
 def handle(core, response):
+    # never heard of switch?
     while isinstance(core.state, Handle):
         if response == 'load':
-            core.load()
-
+            load()
+        elif response == 'init':
+            generate_staring_data()
         elif response == 'plot':
             make_plot()
         elif response == 'sim':
@@ -69,6 +73,45 @@ def handle(core, response):
 def handle_operation(response):
     # TODO: handle input errors
     handle_input_orders(response)
+
+
+def load():
+    # order_type,order_action,limit_price,timestamp,quantity
+
+    path = 'C:/Users/aleks/PycharmProjects/marketplace/utils/marketplace_orders.csv'
+
+    data = pd.read_csv(path)
+    order_action = data['order_action']
+    limit_price = data['limit_price']
+    timestamp = data['timestamp']
+    quantity = data['quantity']
+
+    for i in range(0, len(data)):
+        limit_price_order = LimitPriceOrder(order_action[i],
+                                            timestamp[i],
+                                            quantity[i],
+                                            limit_price[i])
+        if order_action[i] == 'ask':
+            Marketplace.get_instance().asks.append(limit_price_order)
+        else:
+            Marketplace.get_instance().bids.append(limit_price_order)
+
+    # sort loaded data
+    # for easier plotting down the line
+
+    # pre-sort the ask and bids
+    # self.market.get_instance().asks = sorted(self.market.get_instance().asks)
+    # self.market.get_instance().bids = sorted(self.market.get_instance().bids)
+
+    print('BIDS')
+    for item in Marketplace.get_instance().bids:
+        print(item)
+
+    print('ASKS')
+    for item in Marketplace.get_instance().asks:
+        print(item)
+    print(f'Lowest ask: {Marketplace.get_instance().lowest_ask()}')
+    print(f'Highest bid: {Marketplace.get_instance().highest_bid()}')
 
 
 def save():
@@ -153,7 +196,7 @@ def handle_lpo(u_order, asks, bids):
                 # item.quantity >= order quantity
                 else:
                     item.quantity -= u_order.quantity
-                    print(f'Bought {item.quantity} of {item}')
+                    print(f'Bought {u_order.quantity} of {item}')
                     if item.quantity == 0:
                         Marketplace.get_instance().asks.remove(item)
                     return
@@ -171,7 +214,7 @@ def handle_lpo(u_order, asks, bids):
                     Marketplace.get_instance().bids.remove(item)
                 else:
                     item.quantity -= u_order.quantity
-                    print(f'Sold {item.quantity} of {item}')
+                    print(f'Sold {u_order.quantity} of {item}')
                     if item.quantity == 0:
                         Marketplace.get_instance().bids.remove(item)
                     return
